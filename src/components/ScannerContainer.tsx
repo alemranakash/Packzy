@@ -38,6 +38,49 @@ export default function ScannerContainer({
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerId = 'interactive-qr-scanner-element';
   const lastScanRef = useRef<{ text: string; time: number }>({ text: '', time: 0 });
+  const scanCooldownRef = useRef<boolean>(false);
+
+  // Keep a mutable reference to the latest onScanSuccess callback to avoid stale closures
+  const onScanSuccessRef = useRef(onScanSuccess);
+  useEffect(() => {
+    onScanSuccessRef.current = onScanSuccess;
+  }, [onScanSuccess]);
+
+  // Central QR processor to prevent continuous triggers, multiple beeps, or duplicate tab openings
+  const handleDecodedQR = (decodedText: string) => {
+    const now = Date.now();
+    
+    // 1. Global deaf cooldown (3s) to let the operator move the camera or handle the popup
+    if (scanCooldownRef.current) {
+      return;
+    }
+
+    // 2. Stricter duplicate delay (6s) for the same exact QR code to prevent accidental double reads
+    const isDuplicate = lastScanRef.current.text === decodedText && (now - lastScanRef.current.time) < 6000;
+    if (isDuplicate) {
+      return;
+    }
+
+    // Valid scan detected! Lock duplicate registry the exact time we trigger the beep
+    lastScanRef.current = { text: decodedText, time: now };
+    
+    // Enable global lock immediately
+    scanCooldownRef.current = true;
+    setTimeout(() => {
+      scanCooldownRef.current = false;
+    }, 3000);
+
+    // Beep and vibrate EXACTLY ONCE
+    if (soundEnabled) {
+      feedback.playSuccessBeep();
+    }
+    if (vibrateEnabled) {
+      feedback.triggerHapticFeedback();
+    }
+
+    // Execute the latest success handler (safely handles the current Auto vs Click-to-Open settings!)
+    onScanSuccessRef.current(decodedText);
+  };
 
   // Load available cameras
   useEffect(() => {
@@ -114,15 +157,7 @@ export default function ScannerContainer({
           aspectRatio: isCompact ? 1.333333 : 1.0,
         },
         (decodedText) => {
-          // Success callback with duplicate prevention (beep only once in 3 seconds)
-          const now = Date.now();
-          const isDuplicate = lastScanRef.current.text === decodedText && (now - lastScanRef.current.time) < 3000;
-          if (!isDuplicate) {
-            lastScanRef.current = { text: decodedText, time: now };
-            if (soundEnabled) feedback.playSuccessBeep();
-            if (vibrateEnabled) feedback.triggerHapticFeedback();
-            onScanSuccess(decodedText);
-          }
+          handleDecodedQR(decodedText);
         },
         () => {
           // Silent callback for frame scanning misses
@@ -139,15 +174,7 @@ export default function ScannerContainer({
             { facingMode: 'environment' },
             { fps: 12, qrbox: { width: 250, height: 250 } },
             (decodedText) => {
-              // Success callback with duplicate prevention (beep only once in 3 seconds)
-              const now = Date.now();
-              const isDuplicate = lastScanRef.current.text === decodedText && (now - lastScanRef.current.time) < 3000;
-              if (!isDuplicate) {
-                lastScanRef.current = { text: decodedText, time: now };
-                if (soundEnabled) feedback.playSuccessBeep();
-                if (vibrateEnabled) feedback.triggerHapticFeedback();
-                onScanSuccess(decodedText);
-              }
+              handleDecodedQR(decodedText);
             },
             () => {}
           );
