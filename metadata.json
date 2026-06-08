@@ -1,0 +1,6 @@
+{
+  "name": "Parcel ID QR Scanner",
+  "description": "A high-performance web-based QR scanner designed for scanning parcel IDs and managing consignments on Packzy admin.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

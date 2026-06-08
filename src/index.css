@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    background-color: #0A0A0B; /* Pitch black */
+    color: #F0F0F0;
+  }
+}
+
+/* Custom scrollbar to keep layout premium */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0A0B;
+}
+::-webkit-scrollbar-thumb {
+  background: #222226;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333339;
+}
+
+/* Custom glow animations for scanner visual aids matching Bold Typography style */
+@keyframes scanningLine {
+  0% {
+    top: 5%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 95%;
+    opacity: 0;
+  }
+}
+
+.scanner-laser {
+  animation: scanningLine 2.5s infinite linear;
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: rgba(0, 255, 156, 0.4);
+    box-shadow: 0 0 10px rgba(0, 255, 156, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 255, 156, 1);
+    box-shadow: 0 0 25px rgba(0, 255, 156, 0.6);
+  }
+}
+
+.scanner-glow-target {
+  animation: pulseBorder 2s infinite ease-in-out;
+}
+
+/* Specific view corners styling matching Bold Typography Design template */
+.scanner-corners {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-color: #00FF9C;
+  border-style: solid;
+}
+.top-left { border-width: 4px 0 0 4px; top: 0; left: 0; }
+.top-right { border-width: 4px 4px 0 0; top: 0; right: 0; }
+.bottom-left { border-width: 0 0 4px 4px; bottom: 0; left: 0; }
+.bottom-right { border-width: 0 4px 4px 0; bottom: 0; right: 0; }
