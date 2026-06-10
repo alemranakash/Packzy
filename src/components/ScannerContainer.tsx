@@ -138,7 +138,9 @@ export default function ScannerContainer({
       await stopScanning(); // Ensure previous is fully stopped
       
       const constraints = {
-        deviceId: { exact: cameraId }
+        deviceId: { exact: cameraId },
+        width: { min: 640, ideal: 1280, max: 1920 },
+        height: { min: 480, ideal: 720, max: 1080 }
       };
 
       const html5QrCode = new Html5Qrcode(containerId);
@@ -148,13 +150,14 @@ export default function ScannerContainer({
       await html5QrCode.start(
         constraints,
         {
-          fps: 12,
+          fps: 30, // Ultra-responsive frame decoding rate (30 instead of 12)
           qrbox: (width, height) => {
-            // Generous scanning box
-            const size = Math.min(width, height) * 0.75;
-            return { width: size, height: size }; // Full square QR scan target
+            const minDim = Math.min(width, height);
+            // Enlarged target scanner bracket zone (85% width) to recognize fast/shaky scans
+            const size = Math.max(220, minDim * 0.85);
+            return { width: size, height: size };
           },
-          aspectRatio: isCompact ? 1.333333 : 1.0,
+          aspectRatio: undefined, // Dynamic aspect calculations for full compatibility
         },
         (decodedText) => {
           handleDecodedQR(decodedText);
@@ -172,7 +175,10 @@ export default function ScannerContainer({
         if (scannerRef.current) {
           await scannerRef.current.start(
             { facingMode: 'environment' },
-            { fps: 12, qrbox: { width: 250, height: 250 } },
+            { 
+              fps: 30, 
+              qrbox: { width: 280, height: 280 } 
+            },
             (decodedText) => {
               handleDecodedQR(decodedText);
             },
@@ -231,7 +237,7 @@ export default function ScannerContainer({
   return (
     <div id="scanner-view-container" className="flex flex-col gap-3 w-full max-w-2xl mx-auto font-sans">
       {/* Main QR Scanner viewport or Manual text entry */}
-      <div className={`relative ${isCompact ? 'h-[280px] sm:h-[400px]' : 'aspect-square'} w-full bg-slate-950 border border-white/10 rounded-xl overflow-hidden shadow-2xl`}>
+      <div className="relative h-[360px] sm:h-[480px] md:h-[520px] lg:h-[580px] xl:h-[620px] w-full bg-slate-950 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
         <AnimatePresence mode="wait">
           {!isManualInputActive ? (
             <motion.div
