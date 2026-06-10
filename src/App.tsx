@@ -213,12 +213,12 @@ export default function App() {
             className="flex-1 flex flex-col h-full w-full overflow-hidden"
           >
             {/* 1. Header Bar: Minimal, Premium Accent */}
-            <header className="h-[52px] bg-neutral-950 border-b border-white/10 px-4 flex items-center justify-between shrink-0 z-40">
+            <header className="h-[52px] md:h-[68px] bg-neutral-950 border-b border-white/10 px-4 md:px-6 flex items-center justify-between shrink-0 z-40">
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 bg-gradient-to-tr from-emerald-600 to-[#00FF9C] rounded flex items-center justify-center">
-                  <Globe className="w-3 text-black stroke-[3]" />
+                <div className="w-5 h-5 md:w-6 md:h-6 bg-gradient-to-tr from-emerald-600 to-[#00FF9C] rounded flex items-center justify-center">
+                  <Globe className="w-3 md:w-4 text-black stroke-[3]" />
                 </div>
-                <span className="text-xs font-black tracking-widest text-[#00FF9C] uppercase font-mono">PACKZY NODE</span>
+                <span className="text-xs md:text-sm font-black tracking-widest text-[#00FF9C] uppercase font-mono">PACKZY NODE</span>
               </div>
 
               {/* Quick Login Shortcut */}
@@ -228,9 +228,9 @@ export default function App() {
                   window.open('https://admin.packzy.com/admin/login', '_blank');
                   triggerToastNotification('Opening Portal Login...');
                 }}
-                className="text-[10px] font-mono font-bold bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 px-2.5 py-1 rounded transition duration-150 flex items-center gap-1.5 cursor-pointer text-white/90"
+                className="text-[10px] md:text-xs font-mono font-bold bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 px-2.5 py-1 md:px-4 md:py-2.5 rounded md:rounded-lg transition duration-150 flex items-center gap-1.5 md:gap-2 cursor-pointer text-white/90"
               >
-                <Lock className="w-3 h-3 text-[#00FF9C]" />
+                <Lock className="w-3 h-3 md:w-4 md:h-4 text-[#00FF9C]" />
                 <span>Login Portal</span>
               </button>
             </header>
@@ -262,32 +262,6 @@ export default function App() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {/* ACTIVE DETECTION PORTAL ACTION BAR */}
-                {activeParcelId && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-neutral-950 border-2 border-[#00FF9C]/30 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_20px_rgba(0,255,156,0.1)]"
-                  >
-                    <div className="flex flex-col text-center sm:text-left leading-tight">
-                      <span className="text-[10px] font-mono uppercase text-[#00FF9C] tracking-widest font-black">
-                        DETECTION CAPTURED
-                      </span>
-                      <span className="text-sm font-mono font-black text-white mt-1 break-all select-all">
-                        ID: {activeParcelId}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleOpenDirect}
-                      className="w-full sm:w-auto bg-[#00FF9C] text-black font-black px-6 py-3 rounded-lg text-xs tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-emerald-400 transition cursor-pointer shadow-[0_4px_16px_rgba(0,255,156,0.25)] shrink-0 active:scale-95"
-                    >
-                      <span>Open Link</span>
-                      <ArrowUpRight className="w-4 h-4 stroke-[3]" />
-                    </button>
-                  </motion.div>
-                )}
 
                 {/* ALWAYS-ACTIVE STREAM SCANNER MODULE */}
                 <div className="bg-neutral-950 border border-white/5 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-2xl">
@@ -330,6 +304,32 @@ export default function App() {
                     isCompact={false}
                   />
                 </div>
+
+                {/* ACTIVE DETECTION PORTAL ACTION BAR (Repositioned Under Scanner & Enlarged for Tablet) */}
+                {activeParcelId && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-neutral-950 border-2 border-[#00FF9C]/40 rounded-xl md:rounded-2xl p-4 md:p-8 flex flex-col sm:flex-row md:items-center md:justify-between gap-4 md:gap-8 shadow-[0_0_30px_rgba(0,255,156,0.15)]"
+                  >
+                    <div className="flex flex-col text-center sm:text-left leading-tight">
+                      <span className="text-[10px] md:text-sm font-mono uppercase text-[#00FF9C] tracking-widest font-black">
+                        DETECTION CAPTURED
+                      </span>
+                      <span className="text-sm md:text-2xl font-mono font-black text-white mt-1 md:mt-2.5 break-all select-all selection:bg-[#00FF9C] selection:text-black">
+                        ID: {activeParcelId}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleOpenDirect}
+                      className="w-full sm:w-auto bg-[#00FF9C] text-black font-black px-6 py-3 md:px-10 md:py-5 rounded-lg md:rounded-xl text-xs md:text-base tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-emerald-400 transition transform hover:scale-[1.02] cursor-pointer shadow-[0_4px_16px_rgba(0,255,156,0.25)] md:shadow-[0_8px_24px_rgba(0,255,156,0.35)] shrink-0 active:scale-95"
+                    >
+                      <span>Open Link</span>
+                      <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 stroke-[3] md:stroke-[3.5]" />
+                    </button>
+                  </motion.div>
+                )}
 
                 {/* CUSTOM WEBPAGE LINK CONTROLLER / CONFIGURATION (At the bottom) */}
                 <div className="bg-neutral-950 border border-white/5 rounded-xl p-4 flex flex-col gap-3">
