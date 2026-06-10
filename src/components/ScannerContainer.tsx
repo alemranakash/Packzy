@@ -136,63 +136,81 @@ export default function ScannerContainer({
   const startScanning = async (cameraId: string) => {
     try {
       await stopScanning(); // Ensure previous is fully stopped
+      setScannerError('');
       
-      const constraints = {
-        deviceId: { exact: cameraId },
-        width: { min: 640, ideal: 1280, max: 1920 },
-        height: { min: 480, ideal: 720, max: 1080 }
-      };
-
       const html5QrCode = new Html5Qrcode(containerId);
       scannerRef.current = html5QrCode;
-      setScannerError('');
 
-      await html5QrCode.start(
-        constraints,
-        {
-          fps: 30, // Ultra-responsive frame decoding rate (30 instead of 12)
-          qrbox: (width, height) => {
-            const minDim = Math.min(width, height);
-            // Enlarged target scanner bracket zone (85% width) to recognize fast/shaky scans
-            const size = Math.max(220, minDim * 0.85);
-            return { width: size, height: size };
-          },
-          aspectRatio: undefined, // Dynamic aspect calculations for full compatibility
-        },
-        (decodedText) => {
-          handleDecodedQR(decodedText);
-        },
-        () => {
-          // Silent callback for frame scanning misses
-        }
-      );
-
-      setIsScanning(true);
-    } catch (err: any) {
-      console.error('Failed to start scanner:', err);
-      // Fallback
+      // Tier 1: Relaxed camera identification without strict min/max constraints
       try {
-        if (scannerRef.current) {
-          await scannerRef.current.start(
-            { facingMode: 'environment' },
-            { 
-              fps: 30, 
-              qrbox: { width: 280, height: 280 } 
+        await html5QrCode.start(
+          { deviceId: cameraId },
+          {
+            fps: 30,
+            qrbox: (width, height) => {
+              const minDim = Math.min(width, height);
+              const size = Math.max(220, minDim * 0.85);
+              return { width: size, height: size };
             },
-            (decodedText) => {
-              handleDecodedQR(decodedText);
-            },
-            () => {}
-          );
-          setIsScanning(true);
-          setScannerError('');
-        }
-      } catch (innerErr: any) {
-        setScannerError(
-          `Unable to access camera. You can input parcel IDs manually.`
+            aspectRatio: undefined,
+          },
+          (decodedText) => {
+            handleDecodedQR(decodedText);
+          },
+          () => {}
         );
-        setIsScanning(false);
+        setIsScanning(true);
+        return;
+      } catch (t1Err) {
+        console.warn('Tier 1 camera start failed, trying Tier 2 environment fallback:', t1Err);
       }
+
+      // Tier 2: Standard environment/back camera preset (highly reliable on mobile devices)
+      try {
+        await html5QrCode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 30,
+            qrbox: { width: 280, height: 280 },
+            aspectRatio: undefined,
+          },
+          (decodedText) => {
+            handleDecodedQR(decodedText);
+          },
+          () => {}
+        );
+        setIsScanning(true);
+        return;
+      } catch (t2Err) {
+        console.warn('Tier 2 environment camera start failed, trying Tier 3 universal fallback:', t2Err);
+      }
+
+      // Tier 3: Zero-constraint direct device query (broadest compatibility)
+      try {
+        await html5QrCode.start(
+          {},
+          {
+            fps: 24,
+            qrbox: { width: 240, height: 240 },
+          },
+          (decodedText) => {
+            handleDecodedQR(decodedText);
+          },
+          () => {}
+        );
+        setIsScanning(true);
+        return;
+      } catch (t3Err) {
+        console.error('All camera initialization tiers failed:', t3Err);
+        throw t3Err;
+      }
+
+    } catch (err: any) {
+      console.error('Final fallback failure starting camera:', err);
+      setScannerError(
+        `Unable to access camera (${err?.message || 'Permission denied or iframe sandbox restriction'}). Please click the Manual Input button below to process parcel IDs.`
+      );
+      setIsScanning(false);
     }
   };
 
