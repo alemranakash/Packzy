@@ -34,6 +34,8 @@ export default function ScannerContainer({
   const [manualId, setManualId] = useState<string>('');
   const [isManualInputActive, setIsManualInputActive] = useState<boolean>(false);
   const [manualInputError, setManualInputError] = useState<string>('');
+  const [isTorchSupported, setIsTorchSupported] = useState<boolean>(false);
+  const [isTorchOn, setIsTorchOn] = useState<boolean>(false);
   
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerId = 'interactive-qr-scanner-element';
@@ -133,6 +135,33 @@ export default function ScannerContainer({
     };
   }, [selectedCameraId, isManualInputActive]);
 
+  const checkTorchCapabilities = (html5QrCode: Html5Qrcode) => {
+    try {
+      const capabilities = html5QrCode.getRunningTrackCapabilities();
+      if (capabilities && (capabilities as any).torch) {
+        setIsTorchSupported(true);
+      } else {
+        setIsTorchSupported(false);
+      }
+    } catch (err) {
+      console.warn('Failed to query torch capabilities:', err);
+      setIsTorchSupported(false);
+    }
+  };
+
+  const toggleTorch = async () => {
+    if (!scannerRef.current || !isScanning) return;
+    const nextTorchState = !isTorchOn;
+    try {
+      await scannerRef.current.applyVideoConstraints({
+        advanced: [{ torch: nextTorchState }]
+      } as any);
+      setIsTorchOn(nextTorchState);
+    } catch (err) {
+      console.error('Failed to toggle torch:', err);
+    }
+  };
+
   const startScanning = async (cameraId: string) => {
     try {
       await stopScanning(); // Ensure previous is fully stopped
@@ -160,6 +189,7 @@ export default function ScannerContainer({
           () => {}
         );
         setIsScanning(true);
+        checkTorchCapabilities(html5QrCode);
         return;
       } catch (t1Err) {
         console.warn('Tier 1 camera start failed, trying Tier 2 environment fallback:', t1Err);
@@ -180,6 +210,7 @@ export default function ScannerContainer({
           () => {}
         );
         setIsScanning(true);
+        checkTorchCapabilities(html5QrCode);
         return;
       } catch (t2Err) {
         console.warn('Tier 2 environment camera start failed, trying Tier 3 universal fallback:', t2Err);
@@ -199,6 +230,7 @@ export default function ScannerContainer({
           () => {}
         );
         setIsScanning(true);
+        checkTorchCapabilities(html5QrCode);
         return;
       } catch (t3Err) {
         console.error('All camera initialization tiers failed:', t3Err);
@@ -215,6 +247,8 @@ export default function ScannerContainer({
   };
 
   const stopScanning = async () => {
+    setIsTorchOn(false);
+    setIsTorchSupported(false);
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
         await scannerRef.current.stop();
@@ -267,6 +301,26 @@ export default function ScannerContainer({
             >
               {/* Dynamic Camera Stream Target */}
               <div id={containerId} className="w-full h-full overflow-hidden [&>video]:object-cover [&>video]:w-full [&>video]:h-full" />
+
+              {/* Torch Floating Controller Button (Top-Right) */}
+              {isScanning && isTorchSupported && (
+                <div className="absolute top-4 right-4 z-20">
+                  <button
+                    id="toggle-torch-floating-bt"
+                    type="button"
+                    onClick={toggleTorch}
+                    className={`p-3 rounded-xl border backdrop-blur-md transition-all shadow-xl cursor-pointer flex items-center justify-center gap-2 text-[10px] font-mono font-black uppercase tracking-wider ${
+                      isTorchOn 
+                        ? 'bg-[#00FF9C]/20 border-[#00FF9C] text-[#00FF9C] shadow-[0_0_15px_rgba(0,255,156,0.3)] scale-105' 
+                        : 'bg-black/60 border-white/10 text-white hover:text-white hover:border-white/20 active:scale-95'
+                    }`}
+                    title={isTorchOn ? "Turn Flashlight OFF" : "Turn Flashlight ON"}
+                  >
+                    <Zap className={`w-4 h-4 ${isTorchOn ? 'fill-[#00FF9C] text-[#00FF9C] animate-pulse' : 'text-slate-400'}`} />
+                    <span>{isTorchOn ? "Torch: On" : "Torch: Off"}</span>
+                  </button>
+                </div>
+              )}
 
               {/* Glassmorphic overlay */}
               {isScanning && (
