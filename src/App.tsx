@@ -215,9 +215,9 @@ export default function App() {
             window.open('https://admin.packzy.com/admin/login', '_blank');
             triggerToastNotification('Opening Portal Login...');
           }}
-          className="text-[10px] md:text-xs font-mono font-bold bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/10 px-2.5 py-1 md:px-4 md:py-2.5 rounded md:rounded-lg transition duration-150 flex items-center gap-1.5 md:gap-2 cursor-pointer text-white/90"
+          className="text-xs md:text-base font-mono font-black bg-white/10 border-2 border-white/20 hover:border-[#00FF9C]/60 hover:bg-[#00FF9C]/10 px-4 py-2 md:px-7 md:py-3 rounded-lg md:rounded-xl transition duration-150 flex items-center gap-2 md:gap-3 cursor-pointer text-white shadow-lg active:scale-95"
         >
-          <Lock className="w-3 h-3 md:w-4 md:h-4 text-[#00FF9C]" />
+          <Lock className="w-4 h-4 md:w-5 md:h-5 text-[#00FF9C]" />
           <span>Login Portal</span>
         </button>
       </header>
